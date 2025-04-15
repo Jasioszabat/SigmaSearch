@@ -1,0 +1,349 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Sigma Search</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #1e1e1e;
+    }
+    .menu-button {
+      font-size: 24px;
+      color: white;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-top: 50px;
+    }
+    h1 {
+      font-size: 64px;
+      margin-bottom: 20px;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+    }
+    input[type="text"], select, button {
+      padding: 10px;
+      font-size: 16px;
+      background: #222;
+      color: #00ff00;
+      border: 2px solid #00ff00;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #0f0;
+    }
+    .settings {
+      position: fixed;
+      top: 50px;
+      right: 50px;
+      width: 600px;
+      height: 600px;
+      background: #1e1e1e;
+      color: white;
+      border: 2px solid #00ff00;
+      border-radius: 10px;
+      display: none;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .tabs {
+      float: left;
+      width: 150px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid #00ff00;
+    }
+    .tabs button {
+      background: none;
+      border: none;
+      color: #00ff00;
+      padding: 10px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .tab-content {
+      margin-left: 170px;
+    }
+    .tab-section {
+      display: none;
+    }
+    #appearance, #local, #shortcuts, #limits {
+      display: none;
+    }
+    .color-picker {
+      margin-top: 20px;
+    }
+    .shortcut {
+      margin: 10px;
+      padding: 10px;
+      border: 2px solid #00ff00;
+      border-radius: 10px;
+      color: white;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #00ff00;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 5px solid #00ff00;
+      background: transparent;
+      margin: 20px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .circle span {
+      color: #00ff00;
+      font-size: 18px;
+      position: absolute;
+    }
+
+    .circle input[type="range"] {
+      width: 80%;
+      position: absolute;
+      bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div></div>
+    <button class="menu-button" onclick="toggleSettings()">⋯</button>
+  </header>
+
+  <div class="main-content">
+    <h1>Sigma Search</h1>
+    <input type="text" id="searchQuery" placeholder="Wpisz zapytanie...">
+    <select id="searchEngine">
+      <option value="google">Google</option>
+      <option value="bing">Bing</option>
+      <option value="duckduckgo">DuckDuckGo</option>
+      <option value="wikipedia">Wikipedia</option>
+      <option value="local">Lokalna Baza</option>
+    </select>
+    <button onclick="search()">Szukaj</button>
+
+    <div id="shortcutsDisplay" style="margin-top:30px; display:flex; gap:10px; flex-wrap:wrap;"></div>
+  </div>
+
+  <div class="settings" id="settingsPanel">
+    <button onclick="toggleSettings()" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:24px; color:white; cursor:pointer;">✖</button>
+    <div class="tabs">
+      <button onclick="switchTab('appearance')">Tło i tekst</button>
+      <button onclick="switchTab('local')">Lokalna baza</button>
+      <button onclick="switchTab('shortcuts')">Skróty</button>
+      <button onclick="switchTab('limits')">Ograniczenia</button>
+    </div>
+    <div class="tab-content">
+      <div id="appearance" class="tab-section">
+        <div class="color-picker">
+          <label>Kolor tła:</label><br>
+          <input type="color" onchange="document.body.style.backgroundColor = this.value">
+        </div>
+        <div class="color-picker">
+          <label>Kolor tekstu:</label><br>
+          <input type="color" onchange="document.body.style.color = this.value">
+        </div>
+      </div>
+
+      <div id="local" class="tab-section">
+        <input type="text" id="localQuestion" placeholder="Pytanie">
+        <input type="text" id="localAnswer" placeholder="Odpowiedź">
+        <button onclick="addLocal()">Dodaj</button>
+        <ul id="localList"></ul>
+      </div>
+
+      <div id="shortcuts" class="tab-section">
+        <input type="text" id="shortcutName" placeholder="Nazwa skrótu">
+        <input type="text" id="shortcutUrl" placeholder="Link (https://...)">
+        <input type="color" id="shortcutColor">
+        <label class="switch">
+          <input type="checkbox" id="shortcutToggle" checked>
+          <span class="slider"></span>
+        </label>
+        <button onclick="addShortcut()">Dodaj skrót</button>
+      </div>
+
+      <div id="limits" class="tab-section">
+        <div class="circle">
+          <span>CPU</span>
+          <input type="range" id="cpuLimit" min="0" max="100" value="50" onchange="updateLimit('cpu')">
+          <span id="cpuValue">50%</span>
+        </div>
+
+        <div class="circle">
+          <span>RAM</span>
+          <input type="range" id="ramLimit" min="0" max="100" value="50" onchange="updateLimit('ram')">
+          <span id="ramValue">50%</span>
+        </div>
+
+        <div class="circle">
+          <span>Sieć</span>
+          <input type="range" id="networkLimit" min="0" max="100" value="50" onchange="updateLimit('network')">
+          <span id="networkValue">50%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const localBase = JSON.parse(localStorage.getItem("localBase") || "[]");
+    const shortcuts = JSON.parse(localStorage.getItem("shortcuts") || "[]");
+
+    function toggleSettings() {
+      const panel = document.getElementById("settingsPanel");
+      panel.style.display = panel.style.display === "block" ? "none" : "block";
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll(".tab-section").forEach(e => e.style.display = "none");
+      document.getElementById(tab).style.display = "block";
+    }
+
+    function search() {
+      const query = document.getElementById("searchQuery").value;
+      const engine = document.getElementById("searchEngine").value;
+
+      if (engine === "local") {
+        const found = localBase.find(pair => pair.q.toLowerCase() === query.toLowerCase());
+        alert(found ? found.a : "Brak odpowiedzi w lokalnej bazie.");
+        return;
+      }
+
+      let url = "";
+      switch (engine) {
+        case "google": url = "https://www.google.com/search?q=" + encodeURIComponent(query); break;
+        case "bing": url = "https://www.bing.com/search?q=" + encodeURIComponent(query); break;
+        case "duckduckgo": url = "https://duckduckgo.com/?q=" + encodeURIComponent(query); break;
+        case "wikipedia": url = "https://pl.wikipedia.org/wiki/Special:Search?search=" + encodeURIComponent(query); break;
+      }
+      window.open(url, "_blank");
+    }
+
+    function addLocal() {
+      const q = document.getElementById("localQuestion").value.trim();
+      const a = document.getElementById("localAnswer").value.trim();
+      if (!q || !a) return;
+      localBase.push({ q, a });
+      localStorage.setItem("localBase", JSON.stringify(localBase));
+      renderLocal();
+      document.getElementById("localQuestion").value = "";
+      document.getElementById("localAnswer").value = "";
+    }
+
+    function renderLocal() {
+      const ul = document.getElementById("localList");
+      ul.innerHTML = "";
+      localBase.forEach((pair, i) => {
+        const li = document.createElement("li");
+        li.textContent = ${pair.q} → ${pair.a};
+        const del = document.createElement("button");
+        del.textContent = "Usuń";
+        del.style.marginLeft = "10px";
+        del.onclick = () => {
+          localBase.splice(i, 1);
+          localStorage.setItem("localBase", JSON.stringify(localBase));
+          renderLocal();
+        };
+        li.appendChild(del);
+        ul.appendChild(li);
+      });
+    }
+
+    function addShortcut() {
+      if (shortcuts.length >= 6) return alert("Maksymalnie 6 skrótów.");
+      const name = document.getElementById("shortcutName").value;
+      const url = document.getElementById("shortcutUrl").value;
+      const color = document.getElementById("shortcutColor").value;
+      const show = document.getElementById("shortcutToggle").checked;
+      if (!name || !url) return;
+      shortcuts.push({ name, url, color, show });
+      localStorage.setItem("shortcuts", JSON.stringify(shortcuts));
+      renderShortcuts();
+    }
+
+    function renderShortcuts() {
+      const container = document.getElementById("shortcutsDisplay");
+      container.innerHTML = "";
+      shortcuts.forEach(s => {
+        if (!s.show) return;
+        const btn = document.createElement("button");
+        btn.textContent = s.name;
+        btn.style.background = s.color;
+        btn.onclick = () => window.open(s.url, "_blank");
+        container.appendChild(btn);
+      });
+    }
+
+    function updateLimit(type) {
+      const value = document.getElementById(${type}Limit).value;
+      document.getElementById(${type}Value).textContent = ${value}%;
+    }
+
+    renderLocal();
+    renderShortcuts();
+  </script>
+
+</body>
+</html>
